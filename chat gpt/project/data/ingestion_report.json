@@ -1,0 +1,42 @@
+{
+  "ingested_on": "2026-09-03",
+  "source_archive": "drive-download-20260903T014640Z-1-001.zip",
+  "source_archive_sha256": "FD99E05BFA93D66BF058A085F4538001F361A81FF87BFA695926D856A3894F3B",
+  "documents": [
+    {
+      "name": "AIT.pdf",
+      "bytes": 53968700,
+      "sha256": "234DC3760C8C9370422744B94A2017F9906EC2EE7E6472665D7E25DCF41B52A6",
+      "indexed_chunks": 336,
+      "text_pages": 253
+    },
+    {
+      "name": "DSBA.pdf",
+      "bytes": 61089687,
+      "sha256": "6029E708197BEE9B8909F4BD69954FD08F8C992666CD4A3E76C740B9CFBCE651",
+      "indexed_chunks": 398,
+      "text_pages": 281
+    },
+    {
+      "name": "IT2565.pdf",
+      "bytes": 30647899,
+      "sha256": "FDB30FB6B236FDBD556F723573BB68F12F3F3C5F50AEC07D6DAD5DCD355E69E2",
+      "indexed_chunks": 417,
+      "text_pages": 294
+    },
+    {
+      "name": "IT_inter2565.pdf",
+      "bytes": 35291203,
+      "sha256": "D08B7E5CDB6142FAA7289F839DFFB0158046982FE59B27EDD0D82AF9BFD78D43",
+      "indexed_chunks": 312,
+      "text_pages": 206
+    }
+  ],
+  "index": {
+    "algorithm": "bm25-thai-char-ngram",
+    "chunk_count": 1463,
+    "unique_chunk_ids": 1463,
+    "corpus_fingerprint": "e06b2b0145a274d04de5e9f9cda9acaaaea45d4dc3f6a6e18e7e03ecd9ae0f92",
+    "extraction_errors": []
+  }
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Grounded document Q&A powered by ThaiLLM" />
+    <title>ThaiLLM Document Assistant</title>
+    <link rel="stylesheet" href="/static/style.css?v=9" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div class="brand-mark" aria-hidden="true">T</div>
+        <div>
+          <p class="eyebrow">KMITL HACKATHON 2026</p>
+          <h1>ThaiLLM Document Assistant</h1>
+          <p class="subtitle">คำตอบที่ยึดตามเอกสาร พร้อมแหล่งอ้างอิงที่ตรวจสอบได้</p>
+        </div>
+        <div id="status" class="status" role="status">กำลังตรวจสอบระบบ…</div>
+      </header>
+
+      <section class="ask-card chat-card" aria-labelledby="ask-heading">
+        <div class="section-heading">
+          <div>
+            <p class="section-number">CONVERSATION</p>
+            <h2 id="ask-heading">Document chat</h2>
+          </div>
+          <div class="chat-head-actions">
+            <button id="new-chat-button" class="secondary-button" type="button">New chat</button>
+            <button id="reindex-button" class="secondary-button" type="button">Re-index documents</button>
+          </div>
+        </div>
+
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="question-form" class="composer">
+          <label for="question">Continue the conversation</label>
+          <div class="question-row">
+            <textarea
+              id="question"
+              name="question"
+              rows="2"
+              maxlength="4000"
+              placeholder="ถามคำถามต่อ หรืออ้างถึงคำตอบก่อนหน้า…"
+              required
+            ></textarea>
+            <button id="ask-button" class="primary-button" type="submit">
+              <span>SEND</span><span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </form>
+
+        <div id="loading" class="loading" hidden aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span>
+          <span>ThaiLLM is reading the evidence…</span>
+        </div>
+        <p id="error" class="error" hidden role="alert"></p>
+      </section>
+
+      <footer>
+        Conversation history stays in this browser. Answers use retrieved competition documents only.
+      </footer>
+    </main>
+    <script src="/static/app.js?v=9" defer></script>
+  </body>
+</html>

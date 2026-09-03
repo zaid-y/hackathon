@@ -1,0 +1,22 @@
+# ThaiLLM RAG Pipeline Dependencies
+
+# Core HTTP client with retry support
+requests>=2.31.0
+urllib3>=2.0.0
+
+# Optional: Vector retrieval with sentence transformers
+# sentence-transformers>=2.2.0
+
+# Optional: For BM25 retrieval
+# rank-bm25>=0.2.2
+
+# Optional: FastAPI for serving as API
+# fastapi>=0.100.0
+# uvicorn>=0.23.0
+
+# Optional: Streamlit for UI demo
+# streamlit>=1.25.0
+
+# Development
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0

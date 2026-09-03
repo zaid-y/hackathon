@@ -1,0 +1,38 @@
+[
+  {
+    "case": "A",
+    "type": "clearly_answered",
+    "question": "ผู้สมัครต้องมีอายุอย่างน้อยเท่าไร",
+    "expected_source": "rules.pdf"
+  },
+  {
+    "case": "B",
+    "type": "multiple_chunks",
+    "question": "อายุขั้นต่ำและรางวัลชนะเลิศคือเท่าไร",
+    "expected_sources": ["rules.pdf", "prizes.pdf"]
+  },
+  {
+    "case": "C",
+    "type": "not_present",
+    "question": "สนามบินจัดงานตั้งอยู่จังหวัดอะไร",
+    "expected": "insufficient_information"
+  },
+  {
+    "case": "D",
+    "type": "similar_but_incorrect",
+    "question": "รางวัลชนะเลิศคือ 500,000 บาทใช่หรือไม่",
+    "expected_fact": "50,000 บาท"
+  },
+  {
+    "case": "E",
+    "type": "thai_question",
+    "question": "กำหนดส่งผลงานวันไหน",
+    "expected_source": "schedule.pdf"
+  },
+  {
+    "case": "F",
+    "type": "exact_number_date_name",
+    "question": "หัวหน้าทีมชื่ออะไร และประกาศผลวันที่เท่าไร",
+    "expected_facts": ["สมชาย", "28 กุมภาพันธ์ 2569"]
+  }
+]

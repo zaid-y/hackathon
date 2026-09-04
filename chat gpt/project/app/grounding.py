@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import json
 import re
 from app.models import RetrievedChunk
+from app.query_plan import PROGRAMS
 
 REFUSAL = "ไม่พบข้อมูลที่เกี่ยวข้องเพียงพอในเอกสารที่กำหนด"
 LABELS = {"credits": "หน่วยกิตรวม", "specialized": "หน่วยกิตหมวดวิชาเฉพาะ",
@@ -14,6 +15,7 @@ LABELS = {"credits": "หน่วยกิตรวม", "specialized": "หน
           "careers": "อาชีพหลังสำเร็จการศึกษา", "semesters": "ภาคการศึกษา",
           "specializations": "ความเชี่ยวชาญเฉพาะทาง", "age": "อายุผู้สมัคร",
           "prize": "รางวัล", "date": "วันที่", "name": "ชื่อหัวหน้าทีม", "unknown": "ส่วนอื่นของคำถาม"}
+LABELS.update(program='ชื่อสาขาวิชา', recommendation='ข้อเสนอแนะว่าควรเลือกหลักสูตรใด')
 
 def folded(text: str) -> str:
     # Matching only; final quotes retain the font-normalized extracted text.
@@ -70,7 +72,10 @@ def evidence_for(result: RetrievedChunk, facets: list[str]) -> list[Evidence]:
         quotes = []
         for i, line in enumerate(lines):
             following = "\n".join(lines[i:i+3])
-            if facet == "credits" and (has(line,"จำนวนหน่วยกิต") and has(line,"หลักสูตร")
+            if facet == 'program':
+                data = PROGRAMS.get(result.chunk.document)
+                if data and data[1] in re.sub(r'\s+', '', line): quotes.append(line)
+            elif facet == "credits" and (has(line,"จำนวนหน่วยกิต") and has(line,"หลักสูตร")
                                         or has(line,"รวมตลอดหลักสูตร")):
                 if has(line,"หน่วยกิต") and re.search(r"\d{2,3}\s*[^\d\n]{0,4}หน",line): quotes.append(line)
                 elif i+1 < len(lines) and re.match(r"\s*\d{2,3}\s*[^\d]{0,4}หน",lines[i+1]):
@@ -83,7 +88,7 @@ def evidence_for(result: RetrievedChunk, facets: list[str]) -> list[Evidence]:
                 block="\n".join(lines[max(0,i-1):min(len(lines),i+9)])
                 if re.search(r"\b\d+\s*\(\s*0\s*[-–]\s*45", block): quotes.append(block)
             elif facet == "semesters" and (has(line,"ทวิภาค") or has(line,"ภาคการศึกษาที่") or has(line,"ภาคฤดูร้อน")):
-                if has(line,"เดือน"): quotes.append(line)
+                if has(line,"เดือน") and re.match(r'^[\s\ue000-\uf8ff☑□☐]*(?:ภาคการศึกษาที่|ภาคฤดูร้อน)', line): quotes.append(line)
                 elif has(line,"ทวิภาค") and has(line,"ภาคการศึกษาปกติ"): quotes.append(following)
                 elif has(line,"ภาคฤดูร้อน") and i+1<len(lines) and has(lines[i+1],"เดือน"):
                     quotes.append("\n".join(lines[i:i+2]))

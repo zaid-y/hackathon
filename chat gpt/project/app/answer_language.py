@@ -6,6 +6,7 @@ raise an explicit processing error; they are NOT misreported as missing evidence
 from dataclasses import dataclass
 import re
 from app.grounding import REFUSAL, LABELS, render_answer
+from app.query_plan import PROGRAMS, subject
 
 
 class LanguageRenderingError(RuntimeError):
@@ -63,6 +64,8 @@ SPECIALIZATIONS = [
     ('ด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบเว็บและเกม', 'Multimedia for Interactive Media, Web and Game Development', '用于交互媒体、网页和游戏开发的多媒体'),
 ]
 FIELD_NAMES = {
+    'program': ('ชื่อสาขาวิชา', 'Program name', '专业名称'),
+    'recommendation': ('ข้อเสนอแนะว่าควรเลือกหลักสูตรใด', 'Recommendation on which program to choose', '应该选择哪个专业的建议'),
     'credits': ('หน่วยกิตรวม', 'Total credits', '总学分'),
     'specialized': ('หน่วยกิตหมวดวิชาเฉพาะ', 'Specialized-course credits', '专业课程学分'),
     'duration': ('ระยะเวลาการศึกษา', 'Study duration', '学制'),
@@ -100,7 +103,11 @@ def facts_for(evidence):
     for e in evidence:
         q, f = compact(e.quote), e.facet
         variants = []
-        if f in ('credits', 'specialized', 'duration', 'co_op'):
+        if f == 'program':
+            data = PROGRAMS.get(e.result.chunk.document)
+            if data and compact(data[1]) in q:
+                variants.append((data[1:], None))
+        elif f in ('credits', 'specialized', 'duration', 'co_op'):
             values = [e.value] if e.value is not None else []
             if f == 'co_op':
                 values = list(dict.fromkeys(re.findall(r'(\d+)\(0[-–]45[-–]0\)', q)))
@@ -132,7 +139,9 @@ def facts_for(evidence):
                     n = weeks[2]; minimum = bool(weeks[1])
                     variants.append(((f'ภาคการศึกษาปกติ: {"อย่างน้อย " if minimum else ""}{n} สัปดาห์', f'Regular semester: {"at least " if minimum else ""}{n} weeks', f'常规学期：{"至少 " if minimum else ""}{n} 周'), None))
             else:
-                months = [row for row in MONTHS if row[0] in q]
+                # Preserve source order, including ranges crossing New Year.
+                by_name = {row[0]: row for row in MONTHS}
+                months = [by_name[m[0]] for m in re.finditer('|'.join(map(re.escape, by_name)), q)]
                 semester = re.search(r'ภาคการศึกษาที่(\d+)', q)
                 summer = 'ภาคฤดูร้อน' in q
                 if months and (semester or summer):
@@ -148,7 +157,7 @@ def facts_for(evidence):
     return list(dict.fromkeys(facts))
 
 
-def present(evidence, facets, language):
+def present(evidence, facets, language, *, ranking=False, documents=()):
     if not evidence:
         return refusal(language)
     if language not in ('th', 'en', 'zh'):
@@ -165,20 +174,34 @@ def present(evidence, facets, language):
             records = [r for r in facts if r.facet == facet]
             if not records: continue
             lines.append(FIELD_NAMES[facet][index]+':')
-            values = {r.value for r in records if r.value is not None}
-            if len(values) > 1:
-                lines.append(('พบข้อมูลขัดแย้งกัน — ไม่เลือกค่าใดค่าหนึ่ง:', 'Conflicting evidence — no single value selected:', '文档信息存在冲突，不选择其中任何一个值：')[index])
-            groups = {}
+            buckets = {}
             for r in records:
-                groups.setdefault(r.texts, []).append(r)
-            for number, (texts, sources) in enumerate(groups.items(), 1):
-                citations = []
-                for r in sources:
-                    page = (' หน้า ', ' page ', ' 页 ')[index]+str(r.page) if r.page is not None else ''
-                    citations.append(r.document+page)
-                bullet = f'({number})' if facet in ('careers', 'specializations') else '-'
-                lines.append(f'{bullet} {texts[index]} ({"; ".join(dict.fromkeys(citations))})')
+                buckets.setdefault(subject(r.document), []).append(r)
+            def values(rows): return {r.value for r in rows if r.value is not None}
+            items = list(buckets.items())
+            if ranking and facet in ('credits', 'specialized'):
+                items.sort(key=lambda pair: (len(values(pair[1])) != 1, -int(next(iter(values(pair[1])))) if len(values(pair[1])) == 1 else 0))
+                lines.append(('เรียงค่าที่ไม่ขัดแย้งจากมากไปน้อย; หลักสูตรที่ข้อมูลขัดแย้งแสดงแยกและยังจัดอันดับแน่นอนไม่ได้:', 'Unambiguous values in descending order; conflicting programs are shown separately and cannot be ranked definitively:', '无冲突的数值按从高到低排列；信息冲突的专业单独列出，无法确定其排名：')[index])
+            for entity, rows in items:
+                if entity: lines.append(entity+':')
+                if len(values(rows)) > 1:
+                    lines.append(('พบข้อมูลขัดแย้งกัน — ไม่เลือกค่าใดค่าหนึ่ง:', 'Conflicting evidence — no single value selected:', '文档信息存在冲突，不选择其中任何一个值：')[index])
+                groups = {}
+                for r in rows: groups.setdefault(r.texts, []).append(r)
+                for number, (texts, sources) in enumerate(groups.items(), 1):
+                    citations = []
+                    for r in sources:
+                        page = (' หน้า ', ' page ', ' 页 ')[index]+str(r.page) if r.page is not None else ''
+                        citations.append(r.document+page)
+                    bullet = f'({number})' if facet in ('careers', 'specializations') else '-'
+                    lines.append(f'{bullet} {texts[index]} ({"; ".join(dict.fromkeys(citations))})')
         missing = [FIELD_NAMES[f][index] for f in facets if not any(r.facet == f for r in facts)]
+        if documents:
+            missing = [FIELD_NAMES[f][index] for f in facets if f == 'recommendation']
+            for doc in documents:
+                for f in facets:
+                    if f != 'recommendation' and not any(r.facet == f and subject(r.document) == subject(doc) for r in facts):
+                        missing.append(f'{subject(doc)} — {FIELD_NAMES[f][index]}')
         if missing:
             lines = [('ข้อมูลที่พบ:', 'Information found:', '已找到的信息：')[index], *lines,
                      ('ข้อมูลที่ไม่พบ:', 'Information not found:', '未找到的信息：')[index], *missing]

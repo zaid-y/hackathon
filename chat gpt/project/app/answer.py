@@ -17,6 +17,7 @@ from app.models import AnswerResult, RetrievedChunk, SourceCitation
 from app.prompts import SYSTEM_PROMPT, build_user_prompt
 from app.preferences import AnswerOptions
 from app.multilingual import normalize_query
+from app.query_plan import plan
 from app.answer_language import detect_language, refusal, present, LanguageRenderingError
 from app.grounding import (REFUSAL, SELECT_PROMPT, question_facets, evidence_for,
                            validate_selection, render_answer)
@@ -94,18 +95,27 @@ class AnswerService:
             if role == "user" and content.strip()
         ][-3:]
         search_question = normalize_query(normalized_question)
+        query_plan = plan(normalized_question)
         retrieval_query = normalize_query(" ".join([*prior_user_questions, normalized_question]))
         facets = question_facets(search_question)
+        if query_plan['teaching']:
+            facets = ['unknown']
+        elif query_plan['comparison'] and facets == ['unknown']:
+            facets = ['program', 'credits', 'duration']
+        if query_plan['recommendation'] and not query_plan['teaching']:
+            facets.append('recommendation')
         candidate_count = max(len(self.retriever.chunks), 40)
         candidates = self.retriever.search(
             retrieval_query,
             top_k=candidate_count,
         )
         preferred = preferred_documents(search_question)
+        if query_plan['documents']:
+            preferred = tuple(query_plan['documents'])
         known_documents = {"AIT.pdf", "IT2565.pdf", "IT_inter2565.pdf", "DSBA.pdf"}
         retrieved = [r for r in candidates if not preferred or r.chunk.document in preferred
                      or (r.chunk.document not in known_documents
-                         and preferred_documents(r.chunk.text) == preferred)]
+                         and bool(set(preferred_documents(r.chunk.text)) & set(preferred)))]
         subject = re.search(r"หลักสูตร\s+([a-z][a-z0-9_-]*)", normalized_question, re.I)
         if subject and not preferred:
             phrase = subject.group(0).casefold()
@@ -114,6 +124,12 @@ class AnswerService:
         # Explicit local section evidence can pass relevance independently of an
         # aggregate BM25 score. Never manufacture a confidence score for it.
         all_evidence = [e for r in retrieved for e in evidence_for(r, facets)]
+        # Repeated running headers are the same verified program-name fact.
+        # Keep the earliest page for names only; never suppress numeric conflicts.
+        program_names = {}
+        for e in sorted(all_evidence, key=lambda e: e.result.chunk.page or 0):
+            if e.facet == 'program': program_names.setdefault(e.result.chunk.document, e)
+        all_evidence = [e for e in all_evidence if e.facet != 'program'] + list(program_names.values())
         evidence_ids = {e.result.chunk.chunk_id for e in all_evidence}
         relevant = [
             result
@@ -150,6 +166,7 @@ class AnswerService:
             "thailmm_response": None,
             "validation_errors": ["context_too_large"] if oversized else [],
             "requested_facets": facets,
+            "query_plan": query_plan,
             "relevance_method": "explicit_local_field_or_section_match; strict mode also requires BM25 threshold",
             "final_validated_answer": refusal(language),
             "answer_language": language,
@@ -185,7 +202,7 @@ class AnswerService:
         debug["thailmm_response"] = raw
         accepted, errors = validate_selection(raw, evidence)
         try:
-            answer_text = present(accepted, facets, language)
+            answer_text = present(accepted, facets, language, ranking=query_plan['ranking'], documents=query_plan['documents'])
         except LanguageRenderingError:
             debug.update(validation_errors=[*errors, 'verified_translation_unavailable'],
                          final_validated_answer=None, cited_sources=[])

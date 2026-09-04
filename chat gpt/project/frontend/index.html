@@ -5,62 +5,240 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Grounded document Q&A powered by ThaiLLM" />
     <title>ThaiLLM Document Assistant</title>
-    <link rel="stylesheet" href="/static/style.css?v=9" />
+    <link rel="stylesheet" href="/static/style.css?v=12" />
   </head>
   <body>
-    <main class="shell">
-      <header class="hero">
-        <div class="brand-mark" aria-hidden="true">T</div>
-        <div>
-          <p class="eyebrow">KMITL HACKATHON 2026</p>
-          <h1>ThaiLLM Document Assistant</h1>
-          <p class="subtitle">คำตอบที่ยึดตามเอกสาร พร้อมแหล่งอ้างอิงที่ตรวจสอบได้</p>
-        </div>
-        <div id="status" class="status" role="status">กำลังตรวจสอบระบบ…</div>
-      </header>
+    <div class="app-shell">
+      <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
 
-      <section class="ask-card chat-card" aria-labelledby="ask-heading">
-        <div class="section-heading">
+      <aside id="sidebar" class="sidebar" aria-label="Chat history">
+        <div class="sidebar-brand">
+          <div class="brand-mark" aria-hidden="true">T</div>
           <div>
-            <p class="section-number">CONVERSATION</p>
-            <h2 id="ask-heading">Document chat</h2>
+            <strong>ThaiLLM</strong>
+            <span>Document Assistant</span>
           </div>
-          <div class="chat-head-actions">
-            <button id="new-chat-button" class="secondary-button" type="button">New chat</button>
-            <button id="reindex-button" class="secondary-button" type="button">Re-index documents</button>
-          </div>
+          <button id="close-sidebar-button" class="icon-button close-sidebar" type="button" aria-label="Close sidebar">×</button>
         </div>
 
-        <div id="messages" class="messages" aria-live="polite"></div>
+        <button id="new-chat-button" class="new-chat-button" type="button">
+          <span aria-hidden="true">＋</span>
+          <span>New chat</span>
+        </button>
 
-        <form id="question-form" class="composer">
-          <label for="question">Continue the conversation</label>
-          <div class="question-row">
-            <textarea
-              id="question"
-              name="question"
-              rows="2"
-              maxlength="4000"
-              placeholder="ถามคำถามต่อ หรืออ้างถึงคำตอบก่อนหน้า…"
-              required
-            ></textarea>
-            <button id="ask-button" class="primary-button" type="submit">
-              <span>SEND</span><span aria-hidden="true">→</span>
-            </button>
-          </div>
-        </form>
+        <nav class="history-panel" aria-label="Previous conversations">
+          <p class="history-label">Recent</p>
+          <div id="chat-list" class="chat-list"></div>
+        </nav>
 
-        <div id="loading" class="loading" hidden aria-live="polite">
-          <span class="spinner" aria-hidden="true"></span>
-          <span>ThaiLLM is reading the evidence…</span>
+        <div class="sidebar-footer">
+          <div id="status" class="status" role="status">กำลังตรวจสอบระบบ…</div>
+          <button id="reindex-button" class="reindex-button" type="button">
+            <span aria-hidden="true">↻</span>
+            <span>Re-index documents</span>
+          </button>
+          <button id="settings-button" class="reindex-button" type="button">
+            <span aria-hidden="true">⚙</span>
+            <span>Settings</span>
+          </button>
+          <p>KMITL Hackathon 2026</p>
         </div>
-        <p id="error" class="error" hidden role="alert"></p>
-      </section>
+      </aside>
 
-      <footer>
-        Conversation history stays in this browser. Answers use retrieved competition documents only.
-      </footer>
-    </main>
-    <script src="/static/app.js?v=9" defer></script>
+      <main class="chat-workspace">
+        <header class="topbar">
+          <button id="open-sidebar-button" class="icon-button menu-button" type="button" aria-label="Open sidebar">☰</button>
+          <button class="model-selector" type="button" aria-label="Current model">
+            <span>ThaiLLM Document Assistant</span>
+            <span class="model-badge">RAG</span>
+          </button>
+          <div class="privacy-pill"><span aria-hidden="true">◆</span> Documents only</div>
+        </header>
+
+        <section id="conversation-stage" class="conversation-stage" aria-label="Conversation">
+          <div id="empty-state" class="empty-state">
+            <div class="empty-logo" aria-hidden="true">T</div>
+            <h1>What can I help you find?</h1>
+            <p>ถามเกี่ยวกับหลักสูตร แล้วถามต่อได้เหมือนการสนทนาปกติ</p>
+            <div class="suggestion-grid" aria-label="Suggested questions">
+              <button class="suggestion-card" type="button" data-question="เปรียบเทียบจำนวนหน่วยกิตรวมของทั้ง 4 หลักสูตร">
+                <strong>Compare curricula</strong>
+                <span>เปรียบเทียบหน่วยกิตทั้ง 4 หลักสูตร</span>
+              </button>
+              <button class="suggestion-card" type="button" data-question="หลักสูตรเทคโนโลยีปัญญาประดิษฐ์มีโครงสร้างหลักสูตรอย่างไร?">
+                <strong>Explore AI program</strong>
+                <span>ดูโครงสร้างหลักสูตรปัญญาประดิษฐ์</span>
+              </button>
+              <button class="suggestion-card" type="button" data-question="หลักสูตรเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ) มีรูปแบบการศึกษาใดบ้าง?">
+                <strong>International program</strong>
+                <span>สำรวจรูปแบบการศึกษาของหลักสูตรนานาชาติ</span>
+              </button>
+              <button class="suggestion-card" type="button" data-question="หลักสูตรวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจมีจำนวนหน่วยกิตรวมเท่าไร?">
+                <strong>Quick fact</strong>
+                <span>ค้นหาข้อมูลสำคัญพร้อมแหล่งอ้างอิง</span>
+              </button>
+            </div>
+          </div>
+          <div id="messages" class="messages" aria-live="polite"></div>
+        </section>
+
+        <div class="composer-dock">
+          <div class="composer-inner">
+            <div id="loading" class="loading" hidden aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>ThaiLLM is reading the documents…</span>
+            </div>
+            <p id="error" class="error" hidden role="alert"></p>
+            <form id="question-form" class="composer">
+              <label class="sr-only" for="question">Message ThaiLLM</label>
+              <textarea id="question" name="question" rows="1" maxlength="4000" placeholder="Message ThaiLLM…" required></textarea>
+              <button id="ask-button" class="send-button" type="submit" aria-label="Send message">
+                <span aria-hidden="true">↑</span>
+              </button>
+            </form>
+            <p class="disclaimer">ThaiLLM answers only from the indexed competition documents. Check cited pages for important details.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <div class="settings-card">
+        <header class="settings-header">
+          <div>
+            <h2 id="settings-title">Settings</h2>
+            <p>Customize your document chat experience.</p>
+          </div>
+          <button id="close-settings-button" class="icon-button" type="button" aria-label="Close settings">×</button>
+        </header>
+
+        <div class="settings-layout">
+          <nav class="settings-nav" aria-label="Settings categories">
+            <button type="button" data-settings-page="general" aria-pressed="true">General</button>
+            <button type="button" data-settings-page="chat" aria-pressed="false">Chat &amp; answers</button>
+            <button type="button" data-settings-page="advanced" aria-pressed="false">Advanced</button>
+            <button type="button" data-settings-page="data" aria-pressed="false">Data controls</button>
+            <button type="button" data-settings-page="about" aria-pressed="false">About</button>
+          </nav>
+        <div class="settings-content">
+          <section class="settings-section" data-settings-panel="general" aria-labelledby="appearance-heading">
+            <div class="settings-section-title">
+              <h3 id="appearance-heading">Appearance</h3>
+              <p>Choose how the interface looks and feels.</p>
+            </div>
+            <label class="setting-row" for="theme-select">
+              <span><strong>Theme</strong><small>Use your device theme or choose one.</small></span>
+              <select id="theme-select">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+            <label class="setting-row" for="density-select">
+              <span><strong>Chat spacing</strong><small>Adjust the space between messages.</small></span>
+              <select id="density-select">
+                <option value="comfortable">Comfortable</option>
+                <option value="compact">Compact</option>
+              </select>
+            </label>
+            <label class="setting-row" for="font-size-select">
+              <span><strong>Message text size</strong><small>Change reading size without resizing the sidebar.</small></span>
+              <select id="font-size-select"><option value="small">Small</option><option value="default">Default</option><option value="large">Large</option></select>
+            </label>
+            <label class="setting-row toggle-row" for="auto-scroll-toggle">
+              <span><strong>Auto-scroll to new messages</strong><small>Keep the newest answer in view.</small></span>
+              <input id="auto-scroll-toggle" type="checkbox" role="switch" />
+            </label>
+            <label class="setting-row toggle-row" for="suggestions-toggle">
+              <span><strong>Show starter questions</strong><small>Display suggested questions in new chats.</small></span>
+              <input id="suggestions-toggle" type="checkbox" role="switch" />
+            </label>
+          </section>
+
+          <section class="settings-section" data-settings-panel="chat" hidden aria-labelledby="answers-heading">
+            <div class="settings-section-title">
+              <h3 id="answers-heading">Answers</h3>
+              <p>Control supporting information shown with responses.</p>
+            </div>
+            <label class="setting-row toggle-row" for="show-confidence-toggle">
+              <span><strong>Show retrieval confidence</strong><small>Display how closely the evidence matched.</small></span>
+              <input id="show-confidence-toggle" type="checkbox" role="switch" />
+            </label>
+            <label class="setting-row toggle-row" for="open-sources-toggle">
+              <span><strong>Open sources automatically</strong><small>Expand document citations below every answer.</small></span>
+              <input id="open-sources-toggle" type="checkbox" role="switch" />
+            </label>
+            <label class="setting-row" for="answer-style-select">
+              <span><strong>Answer style</strong><small>Strict grounding uses reviewed factual wording. Style preferences are saved but not applied in this mode.</small></span>
+              <select id="answer-style-select" disabled><option value="concise">Concise</option><option value="balanced">Balanced</option><option value="detailed">Detailed</option></select>
+            </label>
+            <label class="setting-row" for="answer-language-select">
+              <span><strong>Answer language</strong><small>Thai questions receive Thai only. English and Chinese questions receive Thai first, then the question language, with the same verified facts. This rule cannot be overridden.</small></span>
+              <select id="answer-language-select" disabled><option value="auto">Thai + question language</option><option value="th">Thai only</option><option value="en">Thai + English</option><option value="zh">Thai + Chinese</option></select>
+            </label>
+          </section>
+
+          <section class="settings-section" data-settings-panel="chat" hidden aria-labelledby="composer-heading">
+            <div class="settings-section-title">
+              <h3 id="composer-heading">Composer</h3>
+              <p>Choose how messages are sent.</p>
+            </div>
+            <label class="setting-row toggle-row" for="enter-to-send-toggle">
+              <span><strong>Press Enter to send</strong><small>Use Shift + Enter for a new line.</small></span>
+              <input id="enter-to-send-toggle" type="checkbox" role="switch" />
+            </label>
+          </section>
+
+          <section class="settings-section" data-settings-panel="advanced" hidden aria-labelledby="advanced-heading">
+            <div class="settings-section-title">
+              <h3 id="advanced-heading">Retrieval &amp; context</h3>
+              <p>Changes apply to the next question. Defaults are recommended for the tested document set.</p>
+            </div>
+            <p class="settings-notice">Documents-only mode is always on. These controls cannot enable web search or external knowledge.</p>
+            <label class="setting-row" for="retrieval-depth-select">
+              <span><strong>Retrieval depth</strong><small>Strict grounding scans all locally matching passages so evidence and conflicts are not silently truncated. Oversized contexts are refused.</small></span>
+              <select id="retrieval-depth-select" disabled><option value="3">Focused · 3</option><option value="5">Default · 5</option><option value="8">Broad · 8</option></select>
+            </label>
+            <label class="setting-row" for="evidence-mode-select">
+              <span><strong>Evidence filter</strong><small>Strict raises the match threshold and may refuse more questions. This is not a factual-accuracy guarantee.</small></span>
+              <select id="evidence-mode-select"><option value="balanced">Balanced</option><option value="strict">Strict</option></select>
+            </label>
+            <label class="setting-row" for="context-limit-select">
+              <span><strong>Conversation context</strong><small>Prior user questions used locally for search, never as factual evidence. Off disables follow-up context.</small></span>
+              <select id="context-limit-select"><option value="0">Off</option><option value="6">6 messages</option><option value="12">12 · Default</option><option value="20">20 messages</option></select>
+            </label>
+            <p class="settings-notice">Retrieval match scores measure text matching, not the probability that an answer is correct. API keys and provider configuration remain on the server.</p>
+          </section>
+
+          <section class="settings-section danger-section" data-settings-panel="data" hidden aria-labelledby="data-heading">
+            <div class="settings-section-title">
+              <h3 id="data-heading">Conversation data</h3>
+              <p>Up to 30 chats and 40 messages per chat are retained in this browser. Export important conversations before they reach these limits.</p>
+            </div>
+            <div class="setting-row"><span><strong>Export current conversation</strong><small>Download messages and source references as JSON.</small></span><button id="export-chat-button" class="outline-button" type="button">Export</button></div>
+            <div class="setting-row"><span><strong>Export all conversations</strong><small>Contains chat text and sources; share the file carefully. No API keys are included.</small></span><button id="export-all-button" class="outline-button" type="button">Export all</button></div>
+            <div class="setting-row">
+              <span><strong>Clear all conversations</strong><small>This cannot be undone.</small></span>
+              <button id="clear-all-chats-button" class="danger-button" type="button">Clear</button>
+            </div>
+          </section>
+          <section class="settings-section" data-settings-panel="about" hidden aria-labelledby="about-heading">
+            <div class="settings-section-title"><h3 id="about-heading">ThaiLLM Document Assistant</h3><p>KMITL Hackathon workspace</p></div>
+            <p class="settings-notice">Strict grounding is always on. Search uses local BM25 and terminology mappings. ThaiLLM selects evidence IDs; the server validates them. Thai-first English/Chinese answers use shared facts and reviewed wording, with metadata citations. Unreviewed translations are not returned.</p>
+            <div class="setting-row"><span><strong>Connection status</strong><small id="settings-connection-status" role="status">Not checked yet</small></span><button id="refresh-status-button" class="outline-button" type="button">Check</button></div>
+            <p class="settings-notice">Settings are saved automatically in this browser. The question determines the output language; saved language preferences do not override the Thai-first rule. Review important facts against the cited documents.</p>
+          </section>
+        </div>
+        </div>
+
+        <footer class="settings-footer">
+          <button id="reset-settings-button" class="text-button" type="button">Reset all preferences</button>
+          <span class="settings-save-note">Saved automatically</span>
+          <button id="done-settings-button" class="done-button" type="button">Done</button>
+        </footer>
+      </div>
+    </dialog>
+
+    <script src="/static/app.js?v=14" defer></script>
   </body>
 </html>

@@ -278,6 +278,22 @@ chunk settings are active through Phase 2.
 
 ## Known limitations
 
+- Answer language follows the current question, not saved preferences: Thai once;
+  English/Chinese receive exactly Thai first and then English/Chinese. Reviewed
+  curriculum renderers share the same fact records and metadata citations across
+  both sections. No model translation or query translation is used. Unsupported
+  evidence wording produces an explicit translation-processing error rather than
+  an invented translation or a false claim that evidence was absent. Supported
+  bilingual fields currently cover credits, duration, careers, specializations,
+  co-op credits and semester structure. Other domains need reviewed renderers.
+
+- Thai Sarabun PDF glyph repair runs locally before chunking. It matches embedded
+  glyph outlines to verified Unicode counterparts, not guessed words. Original
+  PDFs remain unchanged; citation page numbers and chunk offsets refer to the
+  normalized extraction. Unknown glyphs and non-Thai symbols are preserved.
+  Index schema 2 forces older indexes to rebuild on startup. Existing chat
+  messages are not rewritten; ask again to obtain corrected text.
+
 - Scanned/image PDFs need a competition-approved OCR path; `pypdf` cannot read
   text that exists only as pixels.
 - Thai character n-grams are reliable and dependency-free but less precise than

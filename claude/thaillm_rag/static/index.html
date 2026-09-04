@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThaiLLM Document Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🧠</span>
+                    <div class="logo-text">
+                        <h1>ThaiLLM Document Assistant</h1>
+                        <p class="subtitle">AI-powered document question answering</p>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <div class="status-item">
+                        <span class="status-dot" id="health-dot"></span>
+                        <span id="health-text">Connecting...</span>
+                    </div>
+                    <div class="status-item" id="doc-count" style="display: none;">
+                        <span class="doc-icon">📄</span>
+                        <span id="doc-count-text">0 documents</span>
+                    </div>
+                    <div class="status-item" id="mode-badge" style="display: none;">
+                        <span id="mode-text"></span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="question-section">
+                <div class="question-card">
+                    <div class="question-header">
+                        <h2>Ask a Question</h2>
+                        <div class="question-actions">
+                            <select id="mode-select" class="mode-select" title="Query mode">
+                                <option value="enhanced">Enhanced (Recommended)</option>
+                                <option value="simple">Simple</option>
+                                <option value="multi_query">Multi-Query</option>
+                            </select>
+                            <button id="clear-btn" class="btn btn-secondary" title="Clear history">🗑️ Clear</button>
+                        </div>
+                    </div>
+
+                    <div class="input-area">
+                        <textarea
+                            id="question-input"
+                            class="question-input"
+                            placeholder="พิมพ์คำถามของคุณที่นี่... (กด Enter เพื่อส่ง, Shift+Enter สำหรับบรรทัดใหม่)"
+                            rows="3"
+                            spellcheck="false"
+                        ></textarea>
+                        <div class="input-footer">
+                            <div class="input-hints">
+                                <span class="hint">💡 ลองถาม: "เงื่อนไขการสมัครคืออะไร?" "รางวัลอันดับ 1 ได้เท่าไหร่?" "กำหนดส่งโครงงานเมื่อไหร่?"</span>
+                            </div>
+                            <button id="ask-btn" class="btn btn-primary" disabled>
+                                <span class="btn-text">ASK</span>
+                                <span class="btn-loading" style="display: none;">⏳</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="example-questions" id="example-questions">
+                        <span class="example-label">Example questions:</span>
+                        <div class="example-chips" id="example-chips"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="answer-section" id="answer-section" style="display: none;">
+                <div class="answer-card">
+                    <div class="answer-header">
+                        <h2>Answer</h2>
+                        <div class="answer-actions">
+                            <button id="copy-btn" class="btn btn-ghost" title="Copy answer">📋 Copy</button>
+                        </div>
+                    </div>
+                    <div class="answer-content" id="answer-content"></div>
+                    <div class="answer-meta" id="answer-meta"></div>
+                </div>
+            </section>
+
+            <section class="sources-section" id="sources-section" style="display: none;">
+                <div class="sources-card">
+                    <div class="sources-header">
+                        <h2>Sources</h2>
+                        <span class="sources-count" id="sources-count"></span>
+                    </div>
+                    <div class="sources-list" id="sources-list"></div>
+                </div>
+            </section>
+
+            <section class="history-section" id="history-section" style="display: none;">
+                <div class="history-card">
+                    <div class="history-header">
+                        <h2>Question History</h2>
+                        <button id="clear-history-btn" class="btn btn-ghost btn-sm">Clear History</button>
+                    </div>
+                    <div class="history-list" id="history-list"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>ThaiLLM RAG Pipeline — KMITL AI for Mystery Box Hackathon 2026</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

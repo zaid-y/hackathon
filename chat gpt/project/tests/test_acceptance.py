@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 
 from app.answer import INSUFFICIENT_INFORMATION_MESSAGE, AnswerService
 from app.models import TextChunk
@@ -14,15 +15,8 @@ class EvidenceTestThaiLLM:
 
     def answer(self, system_prompt: str, user_prompt: str) -> ThaiLLMResponse:
         self.calls.append(user_prompt)
-        if "500,000" in user_prompt and "50,000 บาท" in user_prompt:
-            return ThaiLLMResponse(
-                text="ไม่ใช่ รางวัลชนะเลิศคือ 50,000 บาท [SOURCE 1]"
-            )
-        if "หัวหน้าทีมชื่ออะไร" in user_prompt:
-            return ThaiLLMResponse(
-                text="หัวหน้าทีมชื่อสมชาย และประกาศผลวันที่ 28 กุมภาพันธ์ 2569 [SOURCE 1] [SOURCE 2]"
-            )
-        return ThaiLLMResponse(text="คำตอบที่ยึดตามหลักฐาน [SOURCE 1]")
+        return ThaiLLMResponse(text=json.dumps({"evidence_ids": [
+            e['id'] for e in json.loads(user_prompt)['evidence']]}))
 
 
 def _chunk(chunk_id: str, text: str, document: str, page: int) -> TextChunk:
@@ -99,7 +93,8 @@ def test_b_question_requires_multiple_chunks() -> None:
 
     source_documents = {source.document for source in result.sources}
     assert {"rules.pdf", "prizes.pdf"}.issubset(source_documents)
-    assert "[SOURCE 2]" in provider.calls[0]
+    assert "prizes_p3_c01" in provider.calls[0]
+    assert "rules_p1_c01" in provider.calls[0]
 
 
 def test_c_question_not_present_is_refused_before_thailmm() -> None:
@@ -118,7 +113,7 @@ def test_d_similar_but_incorrect_information_uses_document_value() -> None:
 
     result = service.answer("รางวัลชนะเลิศคือ 500,000 บาทใช่หรือไม่")
 
-    assert "ไม่ใช่" in result.answer
+    assert "500,000" not in result.answer
     assert "50,000 บาท" in result.answer
     assert result.sources[0].document == "prizes.pdf"
 

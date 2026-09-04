@@ -5,7 +5,14 @@ from pathlib import Path
 import pytest
 
 from app.models import TextChunk
-from app.retriever import BM25Retriever, IndexFormatError, expand_query, tokenize
+from app.retriever import (
+    BM25Retriever,
+    IndexFormatError,
+    expand_query,
+    is_cross_document_query,
+    preferred_documents,
+    tokenize,
+)
 
 
 def _chunk(chunk_id: str, text: str, document: str, page: int) -> TextChunk:
@@ -111,6 +118,23 @@ def test_credit_expansion_ranks_decisive_curriculum_chunk_first() -> None:
     results = index.search("หลักสูตรนี้มีจำนวนหน่วยกิตทั้งหมดกี่หน่วยกิต")
 
     assert results[0].chunk.chunk_id == "structure_p15_c01"
+
+
+def test_specific_curriculum_routes_to_the_correct_document() -> None:
+    assert preferred_documents("หลักสูตรปัญญาประดิษฐ์") == ("AIT.pdf",)
+    assert preferred_documents("หลักสูตรนานาชาติมีกี่หน่วยกิต") == (
+        "IT_inter2565.pdf",
+    )
+    assert preferred_documents("วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ") == (
+        "DSBA.pdf",
+    )
+
+
+def test_cross_document_question_does_not_route_to_one_curriculum() -> None:
+    question = "เรียงหลักสูตรทั้ง 4 หลักสูตรตามจำนวนหน่วยกิต"
+
+    assert is_cross_document_query(question) is True
+    assert preferred_documents(question) == ()
 
 
 def test_saved_index_round_trip_preserves_ranking(

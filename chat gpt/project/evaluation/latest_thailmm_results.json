@@ -1,0 +1,250 @@
+{
+  "generated_at": "2026-09-03T11:24:33.417062+00:00",
+  "system": "ThaiLLM Document Assistant",
+  "rule": "Use only the supplied PDFs; no internet or outside knowledge.",
+  "summary": {
+    "total": 13,
+    "passed": 13,
+    "answer_correct": 13,
+    "citation_correct": 13
+  },
+  "results": [
+    {
+      "id": "T01",
+      "category": "exact_fact",
+      "question": "หลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล. มีจำนวนหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต?",
+      "reference_answer": "129 หน่วยกิต",
+      "answer": "129 หน่วยกิต",
+      "grounded": true,
+      "confidence": 0.688359,
+      "sources": [
+        "IT2565.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T02",
+      "category": "exact_fact",
+      "question": "หลักสูตรสาขาวิชาเทคโนโลยีปัญญาประดิษฐ์มีจำนวนหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต?",
+      "reference_answer": "120 หน่วยกิต",
+      "answer": "120หน่วยกิต",
+      "grounded": true,
+      "confidence": 0.616531,
+      "sources": [
+        "AIT.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T03",
+      "category": "exact_fact",
+      "question": "หลักสูตรวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจมีจำนวนหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต?",
+      "reference_answer": "132 หน่วยกิต",
+      "answer": "132หน่วยกิต",
+      "grounded": true,
+      "confidence": 0.616025,
+      "sources": [
+        "DSBA.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T04",
+      "category": "exact_fact",
+      "question": "หลักสูตรเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ) มีจำนวนหน่วยกิตรวมตลอดหลักสูตรกี่หน่วยกิต?",
+      "reference_answer": "126 หน่วยกิต",
+      "answer": "126หน่วยกิต",
+      "grounded": true,
+      "confidence": 0.559994,
+      "sources": [
+        "IT_inter2565.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T05",
+      "category": "structured_fact",
+      "question": "โครงสร้างหลักสูตรเทคโนโลยีปัญญาประดิษฐ์แบ่งเป็นหมวดศึกษาทั่วไป หมวดวิชาเฉพาะ และหมวดวิชาเลือกเสรีอย่างละกี่หน่วยกิต?",
+      "reference_answer": "ศึกษาทั่วไป 24 หน่วยกิต วิชาเฉพาะ 90 หน่วยกิต และวิชาเลือกเสรี 6 หน่วยกิต",
+      "answer": "โครงสร้างหลักสูตรเทคโนโลยีปัญญาประดิษฐ์แบ่งเป็น:\n\n- หมวดวิชาศึกษาทั่วไป: 24 หน่วยกิต\n- หมวดวิชาเฉพาะ: 90 หน่วยกิต\n- หมวดวิชาเลือกเสรี: 6 หน่วยกิต",
+      "grounded": true,
+      "confidence": 0.614994,
+      "sources": [
+        "AIT.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T06",
+      "category": "structured_fact",
+      "question": "หลักสูตรวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจกำหนดหมวดวิชาศึกษาทั่วไปและหมวดวิชาเฉพาะไว้อย่างละกี่หน่วยกิต?",
+      "reference_answer": "หมวดวิชาศึกษาทั่วไป 30 หน่วยกิต และหมวดวิชาเฉพาะ 96 หน่วยกิต",
+      "answer": "หลักสูตรวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจกำหนดหมวดวิชาศึกษาทั่วไปไว้ 30 หน่วยกิต และหมวดวิชาเฉพาะไว้ 96 หน่วยกิต",
+      "grounded": true,
+      "confidence": 0.578988,
+      "sources": [
+        "DSBA.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T07",
+      "category": "list_fact",
+      "question": "หลักสูตรเทคโนโลยีสารสนเทศระบุความเชี่ยวชาญเฉพาะทางไว้ 3 ด้านอะไรบ้าง?",
+      "reference_answer": "การพัฒนาซอฟต์แวร์, โครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ และสื่อประสมสำหรับสื่อเชิงโต้ตอบ เว็บ และเกม",
+      "answer": "หลักสูตรเทคโนโลยีสารสนเทศระบุความเชี่ยวชาญเฉพาะทางไว้ 3 ด้าน ดังนี้:\n\n1. ด้านการพัฒนาซอฟต์แวร์ (Software Development)\n2. ด้านโครงสร้างพื้นฐานเทคโนโลยีสารสนเทศ (Information Technology Infrastructure)\n3. ด้านสื่อประสมสำหรับการพัฒนาสื่อเชิงโต้ตอบ เว็บ และเกม (Multimedia for Interactive Media, Web and Game Development)",
+      "grounded": true,
+      "confidence": 0.581581,
+      "sources": [
+        "IT2565.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T08",
+      "category": "detail_fact",
+      "question": "รายวิชาโครงงานกลุ่ม 1 ถึง 3 ในหลักสูตรเทคโนโลยีปัญญาประดิษฐ์ วิชาละกี่หน่วยกิต และใช้เกณฑ์ประเมินแบบใด?",
+      "reference_answer": "วิชาละ 1 หน่วยกิต และประเมินเป็นผ่าน (S) หรือไม่ผ่าน (U)",
+      "answer": "รายวิชาโครงงานกลุ่ม 1 ถึง 3 ในหลักสูตรเทคโนโลยีปัญญาประดิษฐ์ วิชาละ 1 หน่วยกิต และใช้เกณฑ์ประเมินผลเป็นผ่าน (S) หรือไม่ผ่าน (U) ตามที่ระบุในเอกสาร AIT.pdf หน้า 12 ช่วงที่ 3.1.2 กลุ่มวิชาโครงงานและสัมมนา ซึ่งระบุว่า \"การประเมินผลในรายวิชาทั้ง 3 รายวิชา จะใช้เกณฑ์ผลการเรียนเป็นผ่าน (S) หรือไม่ผ่าน (U)\"",
+      "grounded": true,
+      "confidence": 0.627544,
+      "sources": [
+        "AIT.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T09",
+      "category": "detail_fact",
+      "question": "ระบบทวิภาคของหลักสูตรวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจแบ่งปีการศึกษาอย่างไร แต่ละภาคปกติมีระยะเวลาไม่น้อยกว่ากี่สัปดาห์?",
+      "reference_answer": "หนึ่งปีมี 2 ภาคการศึกษาปกติ และแต่ละภาคใช้เวลาไม่น้อยกว่า 15 สัปดาห์",
+      "answer": "ระบบการจัดการศึกษาแบบทวิภาคของหลักสูตรวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจแบ่งปีการศึกษาออกเป็น 2 ภาคการศึกษาปกติ และ 1 ภาคฤดูร้อน โดยแต่ละภาคการศึกษาปกติมีระยะเวลาไม่น้อยกว่า 15 สัปดาห์ ตามที่ระบุในเอกสาร DSBA.pdf หน้า 12 ช่วงที่ 1.1 ระบุว่า \"ใน 1 ปีการศึกษาแบ่งออกเป็น 2 ภาคการศึกษาปกติ ซึ่ง 1 ภาคการศึกษาปกติมีระยะเวลาศึกษาไม่น้อยกว่า 15 สัปดาห์\" และภาคฤดูร้อนมีระยะเวลาเทียบเคียงได้กับภาคการศึกษาปกติ แต่ไม่ได้ระบุจำนวนสัปดาห์ในเอกสารนี้โดยตรง อย่างไรก็ตาม ข้อมูลที่ให้มาเพียงพอต่อการตอบคำถามนี้ตามที่ระบุในระบบการจัดการศึกษาทวิภาค",
+      "grounded": true,
+      "confidence": 0.528999,
+      "sources": [
+        "DSBA.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T10",
+      "category": "list_fact",
+      "question": "หลักสูตรเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ) ระบุรูปแบบระบบการศึกษาใดบ้าง?",
+      "reference_answer": "แบบชั้นเรียน แบบออนไลน์ และแบบผสมผสาน",
+      "answer": "รูปแบบระบบการศึกษาที่ระบุในหลักสูตรเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ) คือ:\n\n- แบบชั้นเรียน\n- แบบออนไลน์\n- แบบผสมผสาน\n\nข้อมูลนี้ปรากฏในเอกสาร IT_inter2565.pdf หน้า 14 ช่วง chunk_id: IT_inter2565_p14_c01 ซึ่งระบุว่า \"2.7 ระบบการศึกษา: แบบชั้นเรียน, แบบออนไลน์, แบบผสมผสาน\"",
+      "grounded": true,
+      "confidence": 0.514732,
+      "sources": [
+        "IT_inter2565.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T11",
+      "category": "cross_document",
+      "question": "จงเรียงหลักสูตรทั้ง 4 หลักสูตรจากจำนวนหน่วยกิตรวมมากที่สุดไปน้อยที่สุด พร้อมระบุจำนวนหน่วยกิตของแต่ละหลักสูตร",
+      "reference_answer": "วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ 132, เทคโนโลยีสารสนเทศ 129, เทคโนโลยีสารสนเทศทางธุรกิจ (นานาชาติ) 126, เทคโนโลยีปัญญาประดิษฐ์ 120 หน่วยกิต",
+      "answer": "หลักสูตรทั้ง 4 หลักสูตรเรียงจากจำนวนหน่วยกิตรวมมากที่สุดไปน้อยที่สุด ดังนี้:\n\n1. วท.บ.(วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ) สาขาวิชาวิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ\n จำนวนหน่วยกิต: 132 หน่วยกิต\n\n2. วท.บ.(เทคโนโลยีสารสนเทศทางธุรกิจ) สาขาวิชาเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ)\n จำนวนหน่วยกิต: 126 หน่วยกิต\n\n3. วท.บ.(เทคโนโลยีสารสนเทศ) สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สจล.\n จำนวนหน่วยกิต: 129 หน่วยกิต\n\n4. วท.บ.(สาขาวิชาเทคโนโลยีปัญญาประดิษฐ์) คณะเทคโนโลยีสารสนเทศ สจล.\n จำนวนหน่วยกิต: 120 หน่วยกิต",
+      "grounded": true,
+      "confidence": 0.581781,
+      "sources": [
+        "IT2565.pdf",
+        "AIT.pdf",
+        "DSBA.pdf",
+        "IT_inter2565.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T12",
+      "category": "follow_up",
+      "question": "แล้วหลักสูตรนานาชาติล่ะ?",
+      "reference_answer": "หลักสูตรเทคโนโลยีสารสนเทศทางธุรกิจ (หลักสูตรนานาชาติ) มี 126 หน่วยกิต",
+      "answer": "หลักสูตรนานาชาติมีจำนวนหน่วยกิตรวมตลอดหลักสูตร 126 หน่วยกิต ตามที่ระบุในเอกสารหลักสูตรฉบับปรับปรุง พ.ศ. 2565 ของคณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง.",
+      "grounded": true,
+      "confidence": 0.551683,
+      "sources": [
+        "IT_inter2565.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": false,
+      "missing_requirements": [],
+      "missing_sources": []
+    },
+    {
+      "id": "T13",
+      "category": "guardrail",
+      "question": "จากเอกสารทั้งสี่ฉบับ ค่าเล่าเรียนภาคการศึกษาปัจจุบันในปี พ.ศ. 2569 เป็นเท่าไร?",
+      "reference_answer": "เอกสารที่กำหนดไม่มีข้อมูลเพียงพอสำหรับตอบค่าเล่าเรียนปัจจุบันปี 2569",
+      "answer": "ไม่พบข้อมูลที่เกี่ยวข้องเพียงพอในเอกสารที่กำหนด",
+      "grounded": true,
+      "confidence": 0.4216,
+      "sources": [
+        "IT2565.pdf"
+      ],
+      "answer_correct": true,
+      "citation_correct": true,
+      "passed": true,
+      "refused": true,
+      "missing_requirements": [],
+      "missing_sources": []
+    }
+  ]
+}

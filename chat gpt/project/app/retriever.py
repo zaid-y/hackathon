@@ -19,7 +19,7 @@ from app.document_loader import DocumentLoader
 from app.models import RetrievedChunk, TextChunk
 
 
-INDEX_SCHEMA_VERSION = 1
+INDEX_SCHEMA_VERSION = 2  # Re-extract old indexes with font-aware Thai Unicode repair.
 _TERM_PATTERN = re.compile(r"[a-z0-9]+|[\u0E00-\u0E7F]+", re.IGNORECASE)
 _ENGLISH_STOP_WORDS = frozenset(
     {
@@ -56,6 +56,21 @@ _QUERY_EXPANSIONS: tuple[tuple[tuple[str, ...], str], ...] = (
     (("ค่าใช้จ่าย", "ค่าเรียน"), "ค่าธรรมเนียมการศึกษา ค่าเล่าเรียน"),
     (("รับสมัคร", "สมัครเรียน"), "คุณสมบัติผู้สมัคร เกณฑ์การรับสมัคร"),
     (("เรียนกี่ปี", "ระยะเวลาเรียน"), "ระยะเวลาการศึกษา แผนการศึกษา"),
+    (("นานาชาติ",), "เทคโนโลยีสารสนเทศทางธุรกิจ หลักสูตรนานาชาติ"),
+    (("โครงงานกลุ่ม",), "TEAM-PROJECT ผ่าน S ไม่ผ่าน U"),
+    (("รูปแบบระบบการศึกษา",), "ระบบการศึกษา แบบชั้นเรียน แบบออนไลน์ แบบผสมผสาน"),
+    (
+        ("ทั้ง 4 หลักสูตร", "แต่ละหลักสูตร", "ทุกหลักสูตร", "เปรียบเทียบหลักสูตร", "เรียงหลักสูตร"),
+        "เทคโนโลยีสารสนเทศ เทคโนโลยีปัญญาประดิษฐ์ วิทยาการข้อมูลและการวิเคราะห์เชิงธุรกิจ เทคโนโลยีสารสนเทศทางธุรกิจ หลักสูตรนานาชาติ",
+    ),
+)
+
+_CROSS_DOCUMENT_TRIGGERS = (
+    "ทั้ง 4 หลักสูตร",
+    "แต่ละหลักสูตร",
+    "ทุกหลักสูตร",
+    "เปรียบเทียบหลักสูตร",
+    "เรียงหลักสูตร",
 )
 
 
@@ -105,6 +120,35 @@ def expand_query(text: str) -> str:
         if any(trigger in normalized for trigger in triggers)
     ]
     return " ".join([text, *additions]) if additions else text
+
+
+def is_cross_document_query(text: str) -> bool:
+    """Identify questions that explicitly require evidence from several curricula."""
+
+    normalized = normalize_text(text)
+    return any(trigger in normalized for trigger in _CROSS_DOCUMENT_TRIGGERS)
+
+
+def preferred_documents(text: str) -> tuple[str, ...]:
+    """Route curriculum-specific questions away from similarly worded PDFs.
+
+    The supplied corpus contains four curricula with highly repetitive headings.
+    The most specific program phrase wins so a question about the international
+    program does not accidentally inherit evidence from the regular IT program.
+    """
+
+    normalized = normalize_text(text)
+    if is_cross_document_query(normalized):
+        return ()
+    if "นานาชาติ" in normalized or "เทคโนโลยีสารสนเทศทางธุรกิจ" in normalized:
+        return ("IT_inter2565.pdf",)
+    if "ปัญญาประดิษฐ์" in normalized or re.search(r"\bait\b", normalized):
+        return ("AIT.pdf",)
+    if "วิทยาการข้อมูล" in normalized or "วิเคราะห์เชิงธุรกิจ" in normalized or re.search(r"\bdsba\b", normalized):
+        return ("DSBA.pdf",)
+    if "เทคโนโลยีสารสนเทศ" in normalized or re.search(r"\bit2565\b", normalized):
+        return ("IT2565.pdf",)
+    return ()
 
 
 class BM25Retriever:

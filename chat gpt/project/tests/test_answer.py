@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 
 from app.answer import (
     INSUFFICIENT_INFORMATION_MESSAGE,
@@ -7,18 +8,20 @@ from app.answer import (
     hide_source_markers,
 )
 from app.models import TextChunk
+from app.preferences import AnswerOptions
 from app.retriever import BM25Retriever
 from app.thailmm import ThaiLLMResponse
 
 
 class FakeThaiLLM:
-    def __init__(self, answer: str = "คำตอบจากบริบท [SOURCE 1]") -> None:
+    def __init__(self, answer: str | None = None) -> None:
         self.response = answer
         self.calls: list[tuple[str, str]] = []
 
     def answer(self, system_prompt: str, user_prompt: str) -> ThaiLLMResponse:
         self.calls.append((system_prompt, user_prompt))
-        return ThaiLLMResponse(text=self.response)
+        return ThaiLLMResponse(text=self.response if self.response is not None else json.dumps(
+            {"evidence_ids": [e["id"] for e in json.loads(user_prompt)["evidence"]]}))
 
 
 def _service(*, threshold: float = 0.35) -> tuple[AnswerService, FakeThaiLLM]:
@@ -56,13 +59,47 @@ def _service(*, threshold: float = 0.35) -> tuple[AnswerService, FakeThaiLLM]:
     )
 
 
+def test_options_are_request_local_and_preserve_grounding() -> None:
+    service, provider = _service()
+    history = [("user", "previous-secret-context")]
+    service.answer("ผู้สมัครต้องมีอายุเท่าไร", history=history,
+                   options=AnswerOptions(top_k=8, history_messages=0,
+                       answer_style="detailed", answer_language="en", evidence_mode="strict"))
+    assert service.last_debug["history_turn_count"] == 0
+    assert "previous-secret-context" not in service.last_debug["retrieval_query"]
+    assert service.last_debug["top_k"] == 8
+    assert service.last_debug["relevance_threshold"] == 0.55
+    assert provider.calls
+    from app.grounding import SELECT_PROMPT
+    assert provider.calls[-1][0] == SELECT_PROMPT
+    assert "evidence" in provider.calls[-1][1]
+    assert "previous-secret-context" not in provider.calls[-1][1]
+    service.answer("ผู้สมัครต้องมีอายุเท่าไร")
+    assert service.last_debug["top_k"] == 3
+    assert service.last_debug["relevance_threshold"] == 0.35
+    assert "PRESENTATION PREFERENCES" not in provider.calls[-1][1]
+
+
+def test_context_limit_bounds_server_history() -> None:
+    service, _ = _service()
+    service.answer("ผู้สมัครต้องมีอายุเท่าไร", history=[("user", str(i)) for i in range(20)],
+                   options=AnswerOptions(history_messages=6))
+    assert service.last_debug["history_turn_count"] == 6
+
+
+def test_strict_evidence_never_lowers_server_threshold() -> None:
+    service, _ = _service(threshold=0.9)
+    service.answer("ผู้สมัครต้องมีอายุเท่าไร", options=AnswerOptions(evidence_mode="strict"))
+    assert service.last_debug["relevance_threshold"] == 0.9
+
+
 def test_retrieval_calls_thailmm_and_returns_metadata_citation() -> None:
     service, provider = _service()
 
     result = service.answer("ผู้สมัครต้องมีอายุเท่าไร")
 
     assert result.grounded is True
-    assert result.answer == "คำตอบจากบริบท"
+    assert "ผู้สมัครต้องมีอายุอย่างน้อย 18 ปี" in result.answer
     assert provider.calls
     assert result.sources[0].document == "rules.pdf"
     assert result.sources[0].page == 12
@@ -109,7 +146,38 @@ def test_follow_up_uses_recent_history_for_retrieval_and_prompt() -> None:
     assert result.grounded is True
     assert service.last_debug is not None
     assert "รางวัลชนะเลิศเท่าไร" in service.last_debug["retrieval_query"]
-    assert "CONVERSATION HISTORY" in provider.calls[0][1]
+    assert "ประกาศผลวันที่" in provider.calls[0][1]
+
+
+def test_program_specific_question_filters_similar_curriculum_documents() -> None:
+    chunks = [
+        TextChunk(
+            chunk_id="regular",
+            text="หลักสูตรเทคโนโลยีสารสนเทศ จำนวนหน่วยกิตรวมตลอดหลักสูตร 129 หน่วยกิต",
+            document="IT2565.pdf",
+            page=1,
+            chunk_index=1,
+            start_char=0,
+            end_char=43,
+        ),
+        TextChunk(
+            chunk_id="international",
+            text="หลักสูตรเทคโนโลยีสารสนเทศทางธุรกิจ หลักสูตรนานาชาติ จำนวนหน่วยกิตรวมตลอดหลักสูตร 126 หน่วยกิต",
+            document="IT_inter2565.pdf",
+            page=1,
+            chunk_index=1,
+            start_char=0,
+            end_char=68,
+        ),
+    ]
+    retriever = BM25Retriever()
+    retriever.build(chunks)
+    provider = FakeThaiLLM()
+    service = AnswerService(retriever=retriever, provider=provider, top_k=2)
+
+    result = service.answer("หลักสูตรนานาชาติมีกี่หน่วยกิต")
+
+    assert [source.document for source in result.sources] == ["IT_inter2565.pdf"]
 
 
 def test_empty_question_is_rejected() -> None:

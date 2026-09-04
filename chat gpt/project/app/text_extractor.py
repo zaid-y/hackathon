@@ -13,6 +13,7 @@ from docx import Document as DocxDocument
 from pypdf import PdfReader
 
 from app.models import ExtractedDocument, ExtractedPage
+from app.pdf_glyphs import repair_thai_glyphs
 
 
 class ExtractionError(RuntimeError):
@@ -77,6 +78,7 @@ class DocumentTextExtractor:
     def _extract_pdf(self, path: Path) -> tuple[ExtractedPage, ...]:
         try:
             reader = PdfReader(path)
+            repair_thai_glyphs(reader)
             pages = []
             for page_number, pdf_page in enumerate(reader.pages, start=1):
                 text = self._clean_text(pdf_page.extract_text() or "")

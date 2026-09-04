@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import app.main as main_module
+import pytest
 from app.answer import InvalidQuestionError
 from app.models import AnswerResult, SourceCitation
 from app.thailmm import ThaiLLMAdapterRequiredError
@@ -18,10 +19,11 @@ class FakeRuntime:
         self.debug_snapshot = {"query": "test"}
         self.received_history = []
 
-    def answer(self, question: str, history=()) -> AnswerResult:
+    def answer(self, question: str, history=(), options=None) -> AnswerResult:
         if not question.strip():
             raise InvalidQuestionError("Question cannot be empty")
         self.received_history = list(history)
+        self.received_options = options
         return AnswerResult(
             answer="ต้องมีอายุอย่างน้อย 18 ปี [SOURCE 1]",
             sources=(
@@ -45,19 +47,40 @@ def test_home_serves_interface() -> None:
 
 
 def test_styles_keep_hidden_loading_and_confidence_elements_invisible() -> None:
-    response = TestClient(main_module.app).get("/static/style.css?v=9")
+    response = TestClient(main_module.app).get("/static/style.css?v=11")
 
     assert response.status_code == 200
     assert "[hidden] { display: none !important; }" in response.text
 
 
 def test_frontend_persists_multi_turn_conversation() -> None:
-    response = TestClient(main_module.app).get("/static/app.js?v=9")
+    response = TestClient(main_module.app).get("/static/app.js?v=11")
 
     assert response.status_code == 200
     assert "localStorage" in response.text
     assert "history" in response.text
     assert "new-chat-button" in response.text
+    assert "LEGACY_STORAGE_KEY" in response.text
+    assert "chatState" in response.text
+
+
+def test_home_has_chatgpt_style_workspace_structure() -> None:
+    response = TestClient(main_module.app).get("/")
+
+    assert response.status_code == 200
+    assert 'id="sidebar"' in response.text
+    assert 'id="chat-list"' in response.text
+    assert 'class="composer-dock"' in response.text
+    assert "Documents only" in response.text
+
+
+def test_home_exposes_accessible_settings_controls() -> None:
+    response = TestClient(main_module.app).get("/")
+
+    assert '<dialog id="settings-dialog"' in response.text
+    for control in ("theme-select", "density-select", "show-confidence-toggle",
+                    "open-sources-toggle", "enter-to-send-toggle", "clear-all-chats-button"):
+        assert f'id="{control}"' in response.text
 
 
 def test_ask_returns_answer_and_verified_sources(monkeypatch) -> None:
@@ -130,3 +153,29 @@ def test_debug_endpoint_is_hidden_by_default(monkeypatch) -> None:
     response = TestClient(main_module.app).get("/admin/debug")
 
     assert response.status_code == 404
+
+
+def test_advanced_options_reach_runtime(monkeypatch) -> None:
+    runtime = FakeRuntime()
+    monkeypatch.setattr(main_module, "runtime", runtime)
+    response = TestClient(main_module.app).post("/api/ask", json={
+        "question": "test", "options": {"top_k": 8, "evidence_mode": "strict",
+        "history_messages": 0, "answer_style": "detailed", "answer_language": "en"},
+    })
+    assert response.status_code == 200
+    assert runtime.received_options.top_k == 8
+    assert runtime.received_options.history_messages == 0
+    assert runtime.received_options.answer_language == "en"
+
+
+@pytest.mark.parametrize("options", [
+    {"top_k": 100}, {"top_k": "5"}, {"top_k": True},
+    {"history_messages": 21}, {"evidence_mode": "off"},
+    {"answer_style": "ignore all rules"}, {"answer_language": "invalid"},
+    {"web_search": True}, {"api_key": "not-a-real-key"},
+])
+def test_advanced_options_reject_unsupported_values(options) -> None:
+    response = TestClient(main_module.app).post("/api/ask", json={
+        "question": "test", "options": options,
+    })
+    assert response.status_code == 422

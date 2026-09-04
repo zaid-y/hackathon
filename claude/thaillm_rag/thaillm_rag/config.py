@@ -26,6 +26,7 @@ class RAGConfig:
     # Retrieval settings
     top_k: int = 5
     similarity_threshold: float = 0.7
+    bm25_threshold: float = 1.0  # Minimum BM25 score for relevance
     max_context_length: int = 4000  # chars
 
     # Prompt enhancement settings
@@ -33,9 +34,16 @@ class RAGConfig:
     enhancement_model: str = "thaillm-7b-instruct"  # can use smaller/faster model
 
     # Generation settings
-    system_prompt: str = """You are a helpful Thai-language AI assistant. Answer questions using ONLY the provided context.
-If the answer is not in the context, say "ขออภัย ผมไม่พบข้อมูลที่เกี่ยวข้องในบริบทที่ให้มา" (Sorry, I don't find relevant information in the provided context).
-Answer in Thai language naturally and concisely."""
+    system_prompt: str = """คุณคือผู้ช่วย AI ภาษาไทยที่ช่วยตอบคำถามจากเอกสารเท่านั้น
+
+กฎสำคัญที่ต้องปฏิบัติตลอดเวลา:
+1. ตอบคำถามโดยใช้ข้อมูลจากบริบท (context) ที่ให้มาเท่านั้น
+2. หากไม่พบคำตอบในบริctx ให้ตอบ: "ไม่พบข้อมูลที่เกี่ยวข้องเพียงพอในเอกสารที่กำหนด"
+3. ห้ามใช้ความรู้ภายนอก ห้ามเดา ห้ามสร้างข้อมูลขึ้นมา
+4. ระบุตัวเลข วันที่ ชื่อเฉพาะ ร้อยละ ตามเอกสารอย่างเคร่งครัด
+5. อ้างอิงแหล่งที่มาโดยระบุชื่อเอกสาร และหมายเลขหน้า (ถ้ามี)
+6. ตอบเป็นภาษาไทย อย่างเป็นธรรมชาติ และกระชับ
+7. ไม่ต้องขอโทษหรืออธิบายเพิ่มเติม - ตอบตรงไปตรงมา"""
 
     # Prompt templates
     enhancement_prompt_template: str = """คุณคือนักวิเคราะห์คำถามมืออาชีพ งานของคุณคือปรับปรุงคำถามของผู้ใช้ให้ชัดเจน เฉพาะเจาะจง และเหมาะสมสำหรับการค้นหาข้อมูล
@@ -49,7 +57,7 @@ Answer in Thai language naturally and concisely."""
 
 ตอบเฉพาะคำถามที่ปรับปรุงแล้ว ไม่ต้องอธิบาย"""
 
-    rag_prompt_template: str = """บริบทที่เกี่ยวข้อง:
+    rag_prompt_template: str = """บริบทจากเอกสาร:
 {context}
 
 คำถาม: {question}
@@ -77,6 +85,7 @@ def load_config_from_env() -> tuple[ThaiLLMConfig, RAGConfig]:
     rag_config = RAGConfig(
         top_k=int(os.environ.get("RAG_TOP_K", DEFAULT_RAG_CONFIG.top_k)),
         similarity_threshold=float(os.environ.get("RAG_SIMILARITY_THRESHOLD", DEFAULT_RAG_CONFIG.similarity_threshold)),
+        bm25_threshold=float(os.environ.get("RAG_BM25_THRESHOLD", DEFAULT_RAG_CONFIG.bm25_threshold)),
         max_context_length=int(os.environ.get("RAG_MAX_CONTEXT_LENGTH", DEFAULT_RAG_CONFIG.max_context_length)),
         enhance_prompts=os.environ.get("RAG_ENHANCE_PROMPTS", "true").lower() == "true",
         enhancement_model=os.environ.get("RAG_ENHANCEMENT_MODEL", DEFAULT_RAG_CONFIG.enhancement_model),

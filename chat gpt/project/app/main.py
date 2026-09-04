@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from app.answer import InvalidQuestionError, RAGRuntime
 from app.chunker import ChunkingConfigurationError, DocumentChunker
 from app.config import get_settings
+from app.preferences import AnswerOptions
 from app.document_loader import DocumentFolderError, DocumentLoader
 from app.thailmm import (
     ThaiLLMAdapterRequiredError,
@@ -41,6 +42,7 @@ app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 class QuestionRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
     history: list["ChatMessage"] = Field(default_factory=list, max_length=20)
+    options: AnswerOptions | None = None
 
 
 class ChatMessage(BaseModel):
@@ -72,11 +74,15 @@ def api_status() -> dict:
 
 @app.post("/api/ask")
 def ask(request: QuestionRequest) -> dict:
+    from app.answer_language import LanguageRenderingError
     try:
         history = [(message.role, message.content) for message in request.history]
-        return runtime.answer(request.question, history=history).to_dict()
+        kwargs = {"options": request.options} if request.options is not None else {}
+        return runtime.answer(request.question, history=history, **kwargs).to_dict()
     except InvalidQuestionError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except LanguageRenderingError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except (ThaiLLMConfigurationError, ThaiLLMAdapterRequiredError) as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ThaiLLMRateLimitError as exc:
